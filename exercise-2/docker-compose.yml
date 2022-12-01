@@ -1,0 +1,60 @@
+version: '3.9'
+
+x-wp-path: &common-wp-path
+  WP_PATH: wp
+
+services:
+  nginx:
+    build:
+      dockerfile: ./nginx/nginx.Dockerfile
+      args:
+        WP_USER: user
+        <<: *common-wp-path
+    ports:
+      - "80:80"
+    depends_on:
+      - wordpress
+    volumes:
+      - /upload:/opt/html/upload
+    networks:
+      - net
+
+  wordpress:
+    image: wordpress
+    environment:
+      WORDPRESS_DB_USER: test_user
+      WORDPRESS_DB_PASSWORD: test_password
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: wp_db
+      <<: *common-wp-path
+      WORDPRESS_CONFIG_EXTRA: |
+        $$wp_path_d = getenv('WP_PATH');
+        define('WP_SITEURL', "http://localhost/$$wp_path_d");
+        define('WP_HOME', "http://localhost/$$wp_path_d");
+        $$_SERVER['REQUEST_URI'] = str_replace("/wp-admin/", "/$$wp_path_d/wp-admin/",  $$_SERVER['REQUEST_URI']);
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - net
+
+  mysql:
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_USER: test_user
+      MYSQL_PASSWORD: test_password
+      MYSQL_DATABASE: wp_db
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    networks:
+      - net
+
+networks:
+  net:
+    driver: bridge
