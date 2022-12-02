@@ -8,18 +8,18 @@ server {
     charset UTF-8;
 
     location / {
-        root '/opt/html/root';
+        root /opt/html/root;
     }
 
     location /upload {
-        alias '/opt/html/upload';
+        alias /opt/html/upload;
     }
 
-    location /${WP_PATH}/ {
+    location /wp/ {
         auth_basic 'login';
-        auth_basic_user_file '/etc/apache2/.htpasswd';
+        auth_basic_user_file /etc/apache2/.htpasswd;
 
-        proxy_pass http://wordpress:80/;
+        proxy_pass ${WP_PATH};
 
         proxy_set_header X-Real-IP              $remote_addr;
         proxy_set_header X-Forwarded-For        $proxy_add_x_forwarded_for;
