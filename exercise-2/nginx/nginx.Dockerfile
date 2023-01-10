@@ -8,12 +8,12 @@ ENV WP_PASSWORD=password
 
 WORKDIR /app
 
-COPY ./nginx .
-
 RUN apt-get update -y \
     && apt-get install gawk -y \
     && apt-get install zip -y \
     && apt-get install apache2-utils -y
+
+COPY ./nginx .
 
 RUN mkdir "/etc/apache2" \
     && htpasswd -c -b "/etc/apache2/.htpasswd" "$WP_USER" "$WP_PASSWORD" \
